@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const callbackError = searchParams.get("error");
+
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">(
     "idle"
@@ -29,7 +33,8 @@ export default function LoginPage() {
       <main className="flex min-h-screen items-center justify-center bg-nocturne-black px-6">
         <p className="max-w-sm text-center text-base leading-relaxed text-nocturne-text">
           Vous allez recevoir un lien de connexion par email à{" "}
-          <span className="text-nocturne-white">{email}</span>.
+          <span className="text-nocturne-white">{email}</span>. Utilise le
+          dernier email reçu — les liens précédents ne sont plus valides.
         </p>
       </main>
     );
@@ -73,6 +78,10 @@ export default function LoginPage() {
               Une erreur est survenue. Réessaie.
             </p>
           )}
+
+          {status !== "error" && callbackError && (
+            <p className="text-sm text-nocturne-rose">{callbackError}</p>
+          )}
         </div>
 
         <p className="mt-6 text-sm text-nocturne-text">
@@ -86,5 +95,13 @@ export default function LoginPage() {
         </p>
       </form>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
