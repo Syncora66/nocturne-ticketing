@@ -13,15 +13,15 @@ export default async function CreateEventPage() {
     redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("workspace_name")
-    .eq("id", user.id)
-    .single();
+  const { data: organizations } = await supabase
+    .from("organizations")
+    .select("name")
+    .order("created_at", { ascending: true })
+    .limit(1);
 
   return (
     <DashboardShell
-      workspaceName={profile?.workspace_name ?? null}
+      workspaceName={organizations?.[0]?.name ?? null}
       userEmail={user.email ?? ""}
     >
       <div className="flex flex-col gap-8">

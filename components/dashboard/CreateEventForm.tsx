@@ -63,7 +63,7 @@ export default function CreateEventForm() {
 
     setSubmitting(true);
 
-    const res = await fetch("/api/events/create", {
+    const res = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -1,8 +1,8 @@
 export type EventRow = {
   id: string;
-  name: string;
-  date: string;
-  status: "draft" | "published" | "ended";
+  title: string;
+  event_date: string;
+  status: string;
 };
 
 export default function EventsTable({ events }: { events: EventRow[] }) {
@@ -32,9 +32,9 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
               key={event.id}
               className="border-t border-nocturne-gray-dark text-nocturne-white"
             >
-              <td className="px-4 py-3">{event.name}</td>
+              <td className="px-4 py-3">{event.title}</td>
               <td className="px-4 py-3">
-                {new Date(event.date).toLocaleDateString("fr-FR")}
+                {new Date(event.event_date).toLocaleDateString("fr-FR")}
               </td>
               <td className="px-4 py-3 capitalize">{event.status}</td>
             </tr>

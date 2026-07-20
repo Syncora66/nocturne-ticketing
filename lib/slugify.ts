@@ -1,0 +1,14 @@
+export function slugify(input: string): string {
+  return input
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+export function slugWithSuffix(input: string): string {
+  const base = slugify(input) || "sans-titre";
+  return `${base}-${Math.random().toString(36).slice(2, 8)}`;
+}

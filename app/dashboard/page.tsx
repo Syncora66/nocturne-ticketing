@@ -15,30 +15,29 @@ export default async function DashboardPage() {
     redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("workspace_name")
-    .eq("id", user.id)
-    .single();
+  // RLS scopes all three queries to organizations/events this user owns
+  // or is a member of — no explicit organizer filter needed.
+  const [{ data: organizations }, { count: eventsCount }, { data: recentEvents }] =
+    await Promise.all([
+      supabase
+        .from("organizations")
+        .select("name")
+        .order("created_at", { ascending: true })
+        .limit(1),
+      supabase.from("events").select("*", { count: "exact", head: true }),
+      supabase
+        .from("events")
+        .select("id, title, event_date, status")
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
 
-  const [{ count: eventsCount }, { data: recentEvents }] = await Promise.all([
-    supabase
-      .from("events")
-      .select("*", { count: "exact", head: true })
-      .eq("organizer_id", user.id),
-    supabase
-      .from("events")
-      .select("id, name, date, status")
-      .eq("organizer_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(5),
-  ]);
-
-  const displayName = profile?.workspace_name || user.email || "";
+  const organizationName = organizations?.[0]?.name ?? null;
+  const displayName = organizationName || user.email || "";
 
   return (
     <DashboardShell
-      workspaceName={profile?.workspace_name ?? null}
+      workspaceName={organizationName}
       userEmail={user.email ?? ""}
     >
       <div className="flex flex-col gap-8">
