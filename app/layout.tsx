@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Mono } from "next/font/google";
+import AuthHashRedirect from "@/components/AuthHashRedirect";
 import "./globals.css";
 
 const inter = Inter({
@@ -30,6 +31,7 @@ export default function RootLayout({
       className={`${inter.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-nocturne-black text-nocturne-text font-sans">
+        <AuthHashRedirect />
         {children}
       </body>
     </html>
