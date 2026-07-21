@@ -22,10 +22,14 @@ export async function GET(request: Request) {
   }
 
   const admin = createAdminClient();
+  const { origin } = new URL(request.url);
 
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email: email.trim(),
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
   });
 
   if (error || !data.properties?.action_link) {
