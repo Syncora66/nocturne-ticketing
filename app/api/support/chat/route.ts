@@ -1,7 +1,11 @@
+import { randomUUID } from "node:crypto";
+import QRCode from "qrcode";
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createResendClient } from "@/lib/resend";
+import { ticketQrResendEmailHtml } from "@/lib/emails/ticketQrResend";
 
 const SYSTEM_PROMPT = `Tu es un assistant de support client pour une plateforme de ticketing événementiel (Nocturne Ticketing). Tu aides les organisateurs à traiter les demandes de leurs acheteurs.
 
@@ -57,12 +61,60 @@ const CATEGORY_TO_ACTION: Record<string, string> = {
   info: "answered",
   lost_ticket: "resend_qr",
   custom_question: "propose",
-  refund_valid: "refund",
-  refund_questionable: "escalate",
-  refund_high_risk: "escalate",
+  refund_valid: "pending_refund_review",
+  refund_questionable: "pending_refund_review",
+  refund_high_risk: "pending_refund_review",
   payment_issue: "diagnose_payment",
   fraud: "escalate",
 };
+
+const REFUND_MESSAGE =
+  "Ta demande est transmise à l'équipe, tu auras une réponse sous 24-48h.";
+
+// support_tickets.category has a DB check constraint allowing only
+// 'general' | 'refund' | 'other' — much coarser than Claude's
+// classification categories, so every write needs to go through this.
+const CATEGORY_TO_DB_CATEGORY: Record<string, "general" | "refund" | "other"> = {
+  info: "general",
+  lost_ticket: "general",
+  custom_question: "general",
+  refund_valid: "refund",
+  refund_questionable: "refund",
+  refund_high_risk: "refund",
+  payment_issue: "other",
+  fraud: "other",
+};
+
+type SupabaseAdminClient = ReturnType<typeof createAdminClient>;
+
+async function findTicketForResend(
+  admin: SupabaseAdminClient,
+  organizationId: string,
+  buyerEmail: string
+) {
+  const { data: events } = await admin
+    .from("events")
+    .select("id, title")
+    .eq("organization_id", organizationId);
+
+  const eventIds = (events ?? []).map((e) => e.id);
+  if (eventIds.length === 0) return null;
+
+  const { data: tickets } = await admin
+    .from("tickets")
+    .select("id, event_id, buyer_name, buyer_email")
+    .in("event_id", eventIds)
+    .eq("buyer_email", buyerEmail)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  const ticket = tickets?.[0];
+  if (!ticket) return null;
+
+  const event = events?.find((e) => e.id === ticket.event_id);
+  return { ...ticket, eventTitle: event?.title ?? "ton événement" };
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -81,7 +133,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { ticketId?: unknown; message?: unknown };
+  let body: { ticketId?: unknown; message?: unknown; customerEmail?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -91,7 +143,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { ticketId, message } = body;
+  const { ticketId, message, customerEmail } = body;
 
   if (typeof message !== "string" || !message.trim()) {
     return NextResponse.json(
@@ -110,21 +162,23 @@ export async function POST(request: Request) {
   // given environment (see supabase/migrations/0004 and 0005).
   const admin = createAdminClient();
 
-  // Resolve the support ticket: use the given one (verified to belong
-  // to one of the caller's orgs) or create a fresh one under the
-  // caller's org.
-  let supportTicketId: string;
-
   const { data: memberships } = await admin
     .from("organization_members")
     .select("organization_id")
     .eq("user_id", user.id);
   const memberOrgIds = new Set((memberships ?? []).map((m) => m.organization_id));
 
+  // Resolve the support ticket: use the given one (verified to belong
+  // to one of the caller's orgs) or create a fresh one under the
+  // caller's org.
+  let supportTicketId: string;
+  let resolvedOrgId: string;
+  let resolvedCustomerEmail: string;
+
   if (typeof ticketId === "string" && ticketId) {
     const { data: existing, error: fetchError } = await admin
       .from("support_tickets")
-      .select("id, organization_id")
+      .select("id, organization_id, customer_email")
       .eq("id", ticketId)
       .single();
 
@@ -140,6 +194,8 @@ export async function POST(request: Request) {
       );
     }
     supportTicketId = existing.id;
+    resolvedOrgId = existing.organization_id;
+    resolvedCustomerEmail = existing.customer_email;
   } else {
     const orgId = memberships?.[0]?.organization_id;
 
@@ -150,12 +206,17 @@ export async function POST(request: Request) {
       );
     }
 
+    const finalCustomerEmail =
+      typeof customerEmail === "string" && customerEmail.trim()
+        ? customerEmail.trim()
+        : user.email ?? "inconnu@nocturne.app";
+
     const { data: created, error: createError } = await admin
       .from("support_tickets")
       .insert({
         organization_id: orgId,
-        customer_email: user.email ?? "inconnu@nocturne.app",
-        customer_name: user.email?.split("@")[0] ?? "Organisateur",
+        customer_email: finalCustomerEmail,
+        customer_name: finalCustomerEmail.split("@")[0],
         subject: message.trim().slice(0, 100),
         description: message.trim(),
         category: "general",
@@ -173,6 +234,8 @@ export async function POST(request: Request) {
       );
     }
     supportTicketId = created.id;
+    resolvedOrgId = orgId;
+    resolvedCustomerEmail = finalCustomerEmail;
   }
 
   const { error: insertUserMsgError } = await admin
@@ -226,9 +289,98 @@ export async function POST(request: Request) {
     );
   }
 
+  // support_tickets.status has a DB check constraint currently allowing
+  // only 'open' | 'closed' | 'resolved' | 'in_progress'. Migration 0006
+  // adds 'pending_refund_review' to that list — until it's run, the
+  // refund branch below falls back to 'in_progress' instead of failing.
+  type SafeStatus = "open" | "closed" | "resolved" | "in_progress";
+
+  let finalResponse = classification.suggested_response;
+  let action = CATEGORY_TO_ACTION[classification.category] ?? "answered";
+  let aiHandled = classification.decision === "autonomous";
+  let escalated = classification.decision === "escalade";
+  let newStatus: SafeStatus = classification.decision === "escalade" ? "in_progress" : "resolved";
+  let wantsPendingRefundReview = false;
+  let priority: "low" | "normal" | "high" | "urgent" = "normal";
+
+  // ============================================================
+  // ACTION 1 — lost ticket: actually resend the QR code by email.
+  // ============================================================
+  if (classification.category === "lost_ticket") {
+    const ticket = await findTicketForResend(admin, resolvedOrgId, resolvedCustomerEmail);
+
+    if (ticket && process.env.RESEND_API_KEY) {
+      const newQrCode = randomUUID();
+      const { error: qrUpdateError } = await admin
+        .from("tickets")
+        .update({ qr_code: newQrCode })
+        .eq("id", ticket.id);
+
+      if (!qrUpdateError) {
+        try {
+          const qrPngBuffer = await QRCode.toBuffer(newQrCode, { width: 440 });
+          const resend = createResendClient();
+          await resend.emails.send({
+            from: "Nocturne Ticketing <onboarding@resend.dev>",
+            to: resolvedCustomerEmail,
+            subject: `Ton billet — ${ticket.eventTitle}`,
+            html: ticketQrResendEmailHtml({
+              eventName: ticket.eventTitle,
+              buyerName: ticket.buyer_name,
+            }),
+            attachments: [
+              {
+                filename: "ticket-qr.png",
+                content: qrPngBuffer,
+                inlineContentId: "ticket-qr",
+              },
+            ],
+          });
+
+          finalResponse = "C'est renvoyé, vérifie ta boîte mail !";
+          action = "resend_qr";
+          aiHandled = true;
+          escalated = false;
+          newStatus = "resolved";
+        } catch {
+          finalResponse =
+            "J'ai retrouvé ton billet mais l'envoi de l'email a échoué — je transmets à l'organisateur.";
+          action = "escalate";
+          aiHandled = false;
+          escalated = true;
+          newStatus = "in_progress";
+        }
+      }
+    } else if (!ticket) {
+      finalResponse =
+        "Je ne trouve pas de billet associé à cette adresse — je transmets à l'organisateur pour vérifier.";
+      action = "escalate";
+      aiHandled = false;
+      escalated = true;
+      newStatus = "in_progress";
+    }
+    // If a ticket was found but RESEND_API_KEY is missing, fall through
+    // with the AI's original suggested_response/action — no crash,
+    // just no actual email sent.
+  }
+
+  // ============================================================
+  // ACTION 2 — refund request: never auto-approve, mark for manual
+  // review instead (no Stripe integration to actually process one).
+  // ============================================================
+  if (classification.category.startsWith("refund_")) {
+    finalResponse = REFUND_MESSAGE;
+    action = "pending_refund_review";
+    aiHandled = false;
+    escalated = true;
+    newStatus = "in_progress";
+    wantsPendingRefundReview = true;
+    priority = "high";
+  }
+
   await admin.from("support_conversations").insert({
     support_ticket_id: supportTicketId,
-    message: classification.suggested_response,
+    message: finalResponse,
     sender_type: "ai",
     sender_id: null,
   });
@@ -236,22 +388,32 @@ export async function POST(request: Request) {
   await admin
     .from("support_tickets")
     .update({
-      category: classification.category,
-      ai_handled: classification.decision === "autonomous",
-      ai_solution: classification.suggested_response,
-      escalated_to_human: classification.decision === "escalade",
-      status: classification.decision === "escalade" ? "escalated" : "answered",
+      category: CATEGORY_TO_DB_CATEGORY[classification.category] ?? "general",
+      ai_handled: aiHandled,
+      ai_solution: finalResponse,
+      escalated_to_human: escalated,
+      status: newStatus,
     })
     .eq("id", supportTicketId);
 
-  const action =
-    classification.decision === "escalade"
-      ? "escalate"
-      : CATEGORY_TO_ACTION[classification.category] ?? "answered";
+  // Separate, best-effort update: `priority` and the
+  // 'pending_refund_review' status value were both added in migration
+  // 0006 — if that hasn't been run yet in a given environment, this
+  // fails silently instead of taking down the whole request, leaving
+  // the ticket at status='in_progress' set above.
+  if (priority !== "normal" || wantsPendingRefundReview) {
+    await admin
+      .from("support_tickets")
+      .update({
+        priority,
+        ...(wantsPendingRefundReview ? { status: "pending_refund_review" } : {}),
+      })
+      .eq("id", supportTicketId);
+  }
 
   return NextResponse.json({
     ticketId: supportTicketId,
-    response: classification.suggested_response,
+    response: finalResponse,
     action,
   });
 }

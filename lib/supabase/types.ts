@@ -141,6 +141,7 @@ export type Database = {
           description: string;
           category: string;
           status: string;
+          priority: "low" | "normal" | "high" | "urgent";
           ai_handled: boolean;
           ai_solution: string | null;
           escalated_to_human: boolean;
