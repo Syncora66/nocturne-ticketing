@@ -132,14 +132,14 @@ export type Database = {
       support_tickets: {
         Row: {
           id: string;
-          organization_id: string | null;
+          organization_id: string;
           event_id: string | null;
           ticket_id: string | null;
           customer_email: string;
-          customer_name: string | null;
+          customer_name: string;
           subject: string;
-          description: string | null;
-          category: string | null;
+          description: string;
+          category: string;
           status: string;
           ai_handled: boolean;
           ai_solution: string | null;
@@ -150,8 +150,12 @@ export type Database = {
           resolved_at: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["support_tickets"]["Row"]> & {
+          organization_id: string;
           customer_email: string;
+          customer_name: string;
           subject: string;
+          description: string;
+          category: string;
         };
         Update: Partial<Database["public"]["Tables"]["support_tickets"]["Row"]>;
         Relationships: [];
@@ -161,7 +165,7 @@ export type Database = {
           id: string;
           support_ticket_id: string;
           message: string;
-          sender_type: string;
+          sender_type: "customer" | "human" | "ai";
           sender_id: string | null;
           created_at: string;
         };
@@ -170,7 +174,7 @@ export type Database = {
         > & {
           support_ticket_id: string;
           message: string;
-          sender_type: string;
+          sender_type: "customer" | "human" | "ai";
         };
         Update: Partial<
           Database["public"]["Tables"]["support_conversations"]["Row"]

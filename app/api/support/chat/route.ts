@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const SYSTEM_PROMPT = `Tu es un assistant de support client pour une plateforme de ticketing événementiel (Nocturne Ticketing). Tu aides les organisateurs à traiter les demandes de leurs acheteurs.
 
@@ -99,18 +100,40 @@ export async function POST(request: Request) {
     );
   }
 
-  // Resolve the support ticket: use the given one (RLS confirms the
-  // caller's org owns it) or create a fresh one under the caller's org.
+  // Everything past this point uses the admin (service-role) client,
+  // not the session one. Every read/write below is still explicitly
+  // scoped to the already-authenticated user.id or an organization
+  // that user.id was just confirmed to belong to — RLS isn't the
+  // thing enforcing authorization here, this code is. That also means
+  // it doesn't silently break if support_tickets/support_conversations/
+  // organization_members' RLS policies haven't been applied yet on a
+  // given environment (see supabase/migrations/0004 and 0005).
+  const admin = createAdminClient();
+
+  // Resolve the support ticket: use the given one (verified to belong
+  // to one of the caller's orgs) or create a fresh one under the
+  // caller's org.
   let supportTicketId: string;
 
+  const { data: memberships } = await admin
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", user.id);
+  const memberOrgIds = new Set((memberships ?? []).map((m) => m.organization_id));
+
   if (typeof ticketId === "string" && ticketId) {
-    const { data: existing, error: fetchError } = await supabase
+    const { data: existing, error: fetchError } = await admin
       .from("support_tickets")
-      .select("id")
+      .select("id, organization_id")
       .eq("id", ticketId)
       .single();
 
-    if (fetchError || !existing) {
+    if (
+      fetchError ||
+      !existing ||
+      !existing.organization_id ||
+      !memberOrgIds.has(existing.organization_id)
+    ) {
       return NextResponse.json(
         { error: "Ticket de support introuvable." },
         { status: 404 }
@@ -118,9 +141,6 @@ export async function POST(request: Request) {
     }
     supportTicketId = existing.id;
   } else {
-    const { data: memberships } = await supabase
-      .from("organization_members")
-      .select("organization_id");
     const orgId = memberships?.[0]?.organization_id;
 
     if (!orgId) {
@@ -130,12 +150,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data: created, error: createError } = await supabase
+    const { data: created, error: createError } = await admin
       .from("support_tickets")
       .insert({
         organization_id: orgId,
         customer_email: user.email ?? "inconnu@nocturne.app",
+        customer_name: user.email?.split("@")[0] ?? "Organisateur",
         subject: message.trim().slice(0, 100),
+        description: message.trim(),
+        category: "general",
         status: "open",
         ai_handled: false,
         escalated_to_human: false,
@@ -152,12 +175,12 @@ export async function POST(request: Request) {
     supportTicketId = created.id;
   }
 
-  const { error: insertUserMsgError } = await supabase
+  const { error: insertUserMsgError } = await admin
     .from("support_conversations")
     .insert({
       support_ticket_id: supportTicketId,
       message: message.trim(),
-      sender_type: "staff",
+      sender_type: "human",
       sender_id: user.id,
     });
 
@@ -203,14 +226,14 @@ export async function POST(request: Request) {
     );
   }
 
-  await supabase.from("support_conversations").insert({
+  await admin.from("support_conversations").insert({
     support_ticket_id: supportTicketId,
     message: classification.suggested_response,
     sender_type: "ai",
     sender_id: null,
   });
 
-  await supabase
+  await admin
     .from("support_tickets")
     .update({
       category: classification.category,
