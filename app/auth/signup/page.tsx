@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createOtpClient } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -14,7 +14,7 @@ export default function SignupPage() {
     event.preventDefault();
     setStatus("loading");
 
-    const supabase = createClient();
+    const supabase = createOtpClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {

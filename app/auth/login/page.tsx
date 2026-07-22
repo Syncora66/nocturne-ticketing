@@ -2,7 +2,7 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createOtpClient } from "@/lib/supabase/client";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -17,7 +17,7 @@ function LoginForm() {
     event.preventDefault();
     setStatus("loading");
 
-    const supabase = createClient();
+    const supabase = createOtpClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
