@@ -29,9 +29,21 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
+  const { pathname } = request.nextUrl;
+
+  if (!user && pathname.startsWith("/dashboard")) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Already signed in — the landing page and auth forms aren't useful
+  // anymore, send them straight to their dashboard instead.
+  const isAuthEntryPoint =
+    pathname === "/" || pathname === "/auth/login" || pathname === "/auth/signup";
+  if (user && isAuthEntryPoint) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
@@ -39,5 +51,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/", "/auth/login", "/auth/signup", "/dashboard/:path*"],
 };
