@@ -18,6 +18,9 @@
   --color-nocturne-rose: #ff006e;
   --color-nocturne-cyan: #00d9ff;
   --color-nocturne-text: #cccccc;
+
+  --ease-strong-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-strong-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 body {
@@ -51,6 +54,25 @@ body {
   animation: ambient-gradient 8s ease-in-out infinite;
 }
 
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float-badge {
+  animation: float-slow 5s var(--ease-strong-in-out) infinite;
+}
+
+.float-badge-delayed {
+  animation: float-slow 5s var(--ease-strong-in-out) infinite;
+  animation-delay: 1.2s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-ambient-bg {
     animation: none;
@@ -60,5 +82,10 @@ body {
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;
+  }
+
+  .float-badge,
+  .float-badge-delayed {
+    animation: none;
   }
 }
