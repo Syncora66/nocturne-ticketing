@@ -82,18 +82,19 @@ function PhoneModel({
     const scroll = scrollProgress.current;
 
     if (group.current) {
-      const idleY = reduceMotion ? 0 : Math.sin(t * 0.3) * 0.12;
-      const idleX = reduceMotion ? 0 : Math.cos(t * 0.25) * 0.04;
-      // Extra yaw as the hero scrolls past — a slow, deliberate turn
-      // rather than a full spin, so it still reads as "the same phone"
-      // throughout.
-      const scrollYaw = (scroll - 0.5) * 0.9;
+      const idleY = reduceMotion ? 0 : Math.sin(t * 0.3) * 0.06;
+      const idleX = reduceMotion ? 0 : Math.cos(t * 0.25) * 0.02;
+      // Extra yaw as the hero scrolls past — kept small (~±10° total
+      // swing) since the crisp ticket content is a flat HTML overlay,
+      // not part of the 3D mesh: too much rotation and it visibly
+      // detaches from the phone's screen face.
+      const scrollYaw = (scroll - 0.5) * 0.32;
       group.current.rotation.y = -0.18 + idleY + scrollYaw;
-      group.current.rotation.x = idleX + scroll * 0.15;
+      group.current.rotation.x = idleX + scroll * 0.06;
     }
 
     // Slight dolly-in as the user scrolls through the hero.
-    const targetZ = 5 - scroll * 0.6;
+    const targetZ = 5 - scroll * 0.35;
     camera.position.z += (targetZ - camera.position.z) * 0.08;
   });
 
