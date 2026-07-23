@@ -1,4 +1,5 @@
-import FadeInSection from "@/components/FadeInSection";
+import ScrollReveal from "@/components/ScrollReveal";
+import { StaggerContainer, StaggerItem } from "@/components/StaggerGrid";
 
 const comparisons = [
   {
@@ -19,7 +20,7 @@ export default function TrustSection() {
   return (
     <section className="bg-nocturne-black px-6 py-24 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl">
-        <FadeInSection className="text-center">
+        <ScrollReveal className="text-center">
           <span className="font-mono text-sm font-bold tracking-widest text-nocturne-cyan">
             TRANSPARENCE TOTALE
           </span>
@@ -30,11 +31,11 @@ export default function TrustSection() {
             0.50€ par ticket vendu. Pas de frais de service, pas de
             pourcentage sur les recettes, pas de surprise à la fin du mois.
           </p>
-        </FadeInSection>
+        </ScrollReveal>
 
-        <div className="mt-16 grid gap-6 sm:grid-cols-3">
-          {comparisons.map((c, i) => (
-            <FadeInSection key={c.problem} delayMs={i * 80}>
+        <StaggerContainer className="mt-16 grid gap-6 sm:grid-cols-3">
+          {comparisons.map((c) => (
+            <StaggerItem key={c.problem}>
               <div className="h-full rounded-lg border border-nocturne-gray-dark bg-nocturne-gray p-8">
                 <p className="text-sm leading-relaxed text-nocturne-text/70 line-through decoration-nocturne-text/40">
                   {c.problem}
@@ -43,9 +44,9 @@ export default function TrustSection() {
                   {c.solution}
                 </p>
               </div>
-            </FadeInSection>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   );

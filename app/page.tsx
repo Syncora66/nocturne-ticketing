@@ -1,4 +1,5 @@
-import HeroVisual from "@/components/landing/HeroVisual";
+import Hero3DPhone from "@/components/Hero3DPhone";
+import ScrollReveal from "@/components/ScrollReveal";
 import HowItWorks from "@/components/landing/HowItWorks";
 import AiSupportShowcase from "@/components/landing/AiSupportShowcase";
 import TrustSection from "@/components/landing/TrustSection";
@@ -55,7 +56,7 @@ export default function Home() {
             </div>
           </div>
 
-          <HeroVisual />
+          <Hero3DPhone />
         </div>
       </section>
 
@@ -65,7 +66,7 @@ export default function Home() {
 
       {/* CTA */}
       <section className="bg-nocturne-rose px-6 py-24 sm:px-10 lg:px-16">
-        <div className="mx-auto max-w-3xl text-center">
+        <ScrollReveal className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-extrabold tracking-[-0.02em] text-nocturne-white sm:text-4xl">
             Ton support client, sur pilote automatique.
           </h2>
@@ -82,7 +83,7 @@ export default function Home() {
               Créer mon événement
             </a>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* FOOTER */}

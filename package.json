@@ -10,13 +10,18 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.113.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
+    "@types/three": "^0.185.1",
+    "framer-motion": "^12.42.2",
     "next": "16.2.10",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "resend": "^4.0.1"
+    "resend": "^4.0.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

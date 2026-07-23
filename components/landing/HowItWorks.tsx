@@ -1,4 +1,5 @@
-import FadeInSection from "@/components/FadeInSection";
+import ScrollReveal from "@/components/ScrollReveal";
+import { StaggerContainer, StaggerItem } from "@/components/StaggerGrid";
 
 const steps = [
   {
@@ -27,23 +28,23 @@ export default function HowItWorks() {
   return (
     <section className="bg-nocturne-black px-6 py-24 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl">
-        <FadeInSection className="text-center">
+        <ScrollReveal className="text-center">
           <span className="font-mono text-sm font-bold tracking-widest text-nocturne-cyan">
             COMMENT ÇA MARCHE
           </span>
           <h2 className="mt-4 text-3xl font-bold text-nocturne-white sm:text-4xl">
             Trois étapes. Zéro friction.
           </h2>
-        </FadeInSection>
+        </ScrollReveal>
 
-        <div className="relative mt-16 grid gap-12 sm:grid-cols-3 sm:gap-8">
+        <StaggerContainer className="relative mt-16 grid gap-12 sm:grid-cols-3 sm:gap-8">
           <div
             className="absolute left-0 right-0 top-8 hidden h-px bg-nocturne-gray-dark sm:block"
             aria-hidden="true"
           />
 
-          {steps.map((step, i) => (
-            <FadeInSection key={step.index} delayMs={i * 100}>
+          {steps.map((step) => (
+            <StaggerItem key={step.index}>
               <div className="relative flex flex-col items-center text-center sm:items-start sm:text-left">
                 <span
                   className={`relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border bg-nocturne-black font-mono text-lg font-bold ${
@@ -61,9 +62,9 @@ export default function HowItWorks() {
                   {step.description}
                 </p>
               </div>
-            </FadeInSection>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   );

@@ -1,10 +1,11 @@
-import FadeInSection from "@/components/FadeInSection";
+import ScrollReveal from "@/components/ScrollReveal";
+import { StaggerContainer, StaggerItem } from "@/components/StaggerGrid";
 
 export default function AiSupportShowcase() {
   return (
     <section className="border-y border-nocturne-gray-dark bg-nocturne-gray px-6 py-24 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl">
-        <FadeInSection className="mx-auto max-w-2xl text-center">
+        <ScrollReveal className="mx-auto max-w-2xl text-center">
           <span className="font-mono text-sm font-bold tracking-widest text-nocturne-rose">
             LA DIFFÉRENCE NOCTURNE
           </span>
@@ -20,10 +21,10 @@ export default function AiSupportShowcase() {
             IA s&apos;en occupe jour et nuit. Rien n&apos;est décidé sans toi
             sur l&apos;argent.
           </p>
-        </FadeInSection>
+        </ScrollReveal>
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-2">
-          <FadeInSection delayMs={0}>
+        <StaggerContainer className="mt-16 grid gap-6 lg:grid-cols-2">
+          <StaggerItem>
             <div className="flex h-full flex-col rounded-lg border border-nocturne-gray-dark bg-nocturne-black p-8">
               <span className="font-mono text-xs font-bold uppercase tracking-widest text-nocturne-cyan">
                 Automatique
@@ -50,9 +51,9 @@ export default function AiSupportShowcase() {
                 </div>
               </div>
             </div>
-          </FadeInSection>
+          </StaggerItem>
 
-          <FadeInSection delayMs={100}>
+          <StaggerItem>
             <div className="flex h-full flex-col rounded-lg border border-nocturne-gray-dark bg-nocturne-black p-8">
               <span className="font-mono text-xs font-bold uppercase tracking-widest text-nocturne-rose">
                 Toujours validé par toi
@@ -83,8 +84,8 @@ export default function AiSupportShowcase() {
                 </div>
               </div>
             </div>
-          </FadeInSection>
-        </div>
+          </StaggerItem>
+        </StaggerContainer>
       </div>
     </section>
   );
