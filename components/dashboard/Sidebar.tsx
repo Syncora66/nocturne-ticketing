@@ -5,6 +5,7 @@ import Link from "next/link";
 const navItems = [
   { label: "Accueil", href: "/dashboard" },
   { label: "Événements", href: "/dashboard/events" },
+  { label: "Remboursements", href: "/admin/support" },
   { label: "Réglages", href: "/dashboard/settings" },
   { label: "Aide", href: "/dashboard/help" },
 ];
