@@ -1,4 +1,4 @@
-import Hero3DPhone from "@/components/Hero3DPhone";
+import HeroFrameSequence from "@/components/landing/HeroFrameSequence";
 import ScrollReveal from "@/components/ScrollReveal";
 import HowItWorks from "@/components/landing/HowItWorks";
 import AiSupportShowcase from "@/components/landing/AiSupportShowcase";
@@ -7,58 +7,7 @@ import TrustSection from "@/components/landing/TrustSection";
 export default function Home() {
   return (
     <main>
-      {/* HERO */}
-      <section className="hero-ambient-bg flex min-h-screen items-center px-6 py-24 sm:px-10 lg:px-16">
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-16 lg:grid-cols-2">
-          <div>
-            <h1 className="text-4xl font-extrabold tracking-[-0.02em] text-nocturne-white sm:text-5xl lg:text-6xl">
-              Vendre 300 tickets en 1 heure.
-              <br />
-              <span className="text-nocturne-rose">Garder 100% du prix.</span>
-            </h1>
-
-            <div className="mt-6 max-w-lg rounded-lg border-l-2 border-nocturne-cyan bg-nocturne-cyan/5 py-3 pl-4">
-              <p className="text-base font-bold leading-relaxed text-nocturne-white sm:text-lg">
-                L&apos;IA gère ton support client — remboursements, renvoi de
-                billets.{" "}
-                <span className="text-nocturne-cyan">
-                  Toi, tu gardes le contrôle total.
-                </span>
-              </p>
-            </div>
-
-            <p className="mt-5 max-w-md text-sm leading-relaxed text-nocturne-text sm:text-base">
-              Ticketing moderne pour collectifs événementiels. Zéro
-              commission cachée.
-            </p>
-
-            <div className="mt-10">
-              <a
-                href="/auth/signup"
-                className="inline-block rounded-md bg-nocturne-rose px-8 py-4 font-mono text-sm font-bold uppercase tracking-wide text-nocturne-white transition-[transform,background-color,color] duration-200 ease-out hover:bg-nocturne-cyan hover:text-nocturne-black active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-nocturne-cyan"
-              >
-                Créer mon événement
-              </a>
-            </div>
-
-            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <span className="font-mono text-xs font-bold tracking-wide text-nocturne-text/70">
-                0.50€ / TICKET
-              </span>
-              <span className="h-1 w-1 rounded-full bg-nocturne-gray-dark" />
-              <span className="font-mono text-xs font-bold tracking-wide text-nocturne-text/70">
-                SUPPORT IA 24/7
-              </span>
-              <span className="h-1 w-1 rounded-full bg-nocturne-gray-dark" />
-              <span className="font-mono text-xs font-bold tracking-wide text-nocturne-text/70">
-                0% COMMISSION CACHÉE
-              </span>
-            </div>
-          </div>
-
-          <Hero3DPhone />
-        </div>
-      </section>
+      <HeroFrameSequence />
 
       <HowItWorks />
       <AiSupportShowcase />
