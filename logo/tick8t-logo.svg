@@ -1,0 +1,31 @@
+<svg width="680" height="240" viewBox="0 0 680 240" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Michroma&amp;family=Exo+2:wght@400;500&amp;display=swap');
+</style>
+<radialGradient id="bgGlow" cx="50%" cy="45%" r="60%">
+<stop offset="0%" stop-color="#123842"/>
+<stop offset="55%" stop-color="#071A1F"/>
+<stop offset="100%" stop-color="#03080a"/>
+</radialGradient>
+<linearGradient id="accentText" x1="0%" y1="0%" x2="100%" y2="0%">
+<stop offset="0%" stop-color="#4FD8E8"/>
+<stop offset="100%" stop-color="#A8F0F7"/>
+</linearGradient>
+<filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+<feGaussianBlur stdDeviation="10" result="blur"/>
+<feMerge>
+<feMergeNode in="blur"/>
+<feMergeNode in="SourceGraphic"/>
+</feMerge>
+</filter>
+<filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+<feGaussianBlur stdDeviation="20"/>
+</filter>
+</defs>
+<rect x="0" y="0" width="680" height="240" fill="url(#bgGlow)"/>
+<ellipse cx="340" cy="110" rx="200" ry="65" fill="#1B4F5C" opacity="0.35" filter="url(#softGlow)"/>
+<text x="340" y="122" text-anchor="middle" font-family="Michroma, Arial, sans-serif" font-size="50" letter-spacing="8" filter="url(#glow)"><tspan fill="#F0FBFD">TICK</tspan><tspan fill="url(#accentText)">8</tspan><tspan fill="#F0FBFD">T</tspan></text>
+<text x="340" y="122" text-anchor="middle" font-family="Michroma, Arial, sans-serif" font-size="50" letter-spacing="8"><tspan fill="#F0FBFD">TICK</tspan><tspan fill="url(#accentText)">8</tspan><tspan fill="#F0FBFD">T</tspan></text>
+<text x="340" y="164" text-anchor="middle" font-family="Exo 2, Arial, sans-serif" font-weight="500" font-size="14" letter-spacing="5" fill="#8FB8C0">BILLETTERIE NOCTURNE</text>
+</svg>
