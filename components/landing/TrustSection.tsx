@@ -18,16 +18,16 @@ const comparisons = [
 
 export default function TrustSection() {
   return (
-    <section className="bg-nocturne-black px-6 py-24 sm:px-10 lg:px-16">
+    <section className="tick8t-teal-glow bg-nocturne-black px-6 py-24 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl">
         <ScrollReveal className="text-center">
-          <span className="font-mono text-sm font-bold tracking-widest text-nocturne-cyan">
+          <span className="font-mono text-sm font-bold tracking-widest text-tick8t-cyan">
             TRANSPARENCE TOTALE
           </span>
           <h2 className="mt-4 text-3xl font-bold text-nocturne-white sm:text-4xl">
             Zéro commission cachée.
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-nocturne-text">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-tick8t-secondary">
             0.50€ par ticket vendu. Pas de frais de service, pas de
             pourcentage sur les recettes, pas de surprise à la fin du mois.
           </p>
@@ -37,10 +37,10 @@ export default function TrustSection() {
           {comparisons.map((c) => (
             <StaggerItem key={c.problem}>
               <div className="h-full rounded-lg border border-nocturne-gray-dark bg-nocturne-gray p-8">
-                <p className="text-sm leading-relaxed text-nocturne-text/70 line-through decoration-nocturne-text/40">
+                <p className="text-sm leading-relaxed text-tick8t-secondary/70 line-through decoration-tick8t-secondary/40">
                   {c.problem}
                 </p>
-                <p className="mt-4 font-mono text-base font-bold leading-relaxed text-nocturne-cyan">
+                <p className="mt-4 font-mono text-base font-bold leading-relaxed text-tick8t-cyan">
                   {c.solution}
                 </p>
               </div>

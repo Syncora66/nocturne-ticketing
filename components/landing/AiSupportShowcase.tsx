@@ -3,20 +3,20 @@ import { StaggerContainer, StaggerItem } from "@/components/StaggerGrid";
 
 export default function AiSupportShowcase() {
   return (
-    <section className="border-y border-nocturne-gray-dark bg-nocturne-gray px-6 py-24 sm:px-10 lg:px-16">
+    <section className="tick8t-teal-glow border-y border-nocturne-gray-dark bg-nocturne-gray px-6 py-24 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl">
         <ScrollReveal className="mx-auto max-w-2xl text-center">
-          <span className="font-mono text-sm font-bold tracking-widest text-nocturne-rose">
+          <span className="font-mono text-sm font-bold tracking-widest text-tick8t-violet">
             LA DIFFÉRENCE NOCTURNE
           </span>
           <h2 className="mt-4 text-3xl font-extrabold tracking-[-0.02em] text-nocturne-white sm:text-4xl">
             L&apos;IA gère ton support client.
             <br />
-            <span className="text-nocturne-cyan">
+            <span className="text-tick8t-cyan">
               Toi, tu gardes le contrôle total.
             </span>
           </h2>
-          <p className="mt-5 text-base leading-relaxed text-nocturne-text sm:text-lg">
+          <p className="mt-5 text-base leading-relaxed text-tick8t-secondary sm:text-lg">
             Remboursements, billets perdus, questions clients — l&apos;agent
             IA s&apos;en occupe jour et nuit. Rien n&apos;est décidé sans toi
             sur l&apos;argent.
@@ -26,13 +26,13 @@ export default function AiSupportShowcase() {
         <StaggerContainer className="mt-16 grid gap-6 lg:grid-cols-2">
           <StaggerItem>
             <div className="flex h-full flex-col rounded-lg border border-nocturne-gray-dark bg-nocturne-black p-8">
-              <span className="font-mono text-xs font-bold uppercase tracking-widest text-nocturne-cyan">
+              <span className="font-mono text-xs font-bold uppercase tracking-widest text-tick8t-cyan">
                 Automatique
               </span>
               <h3 className="mt-3 text-xl font-bold text-nocturne-white">
                 Renvoi de billet, sans intervention
               </h3>
-              <p className="mt-3 text-sm leading-relaxed text-nocturne-text">
+              <p className="mt-3 text-sm leading-relaxed text-tick8t-secondary">
                 Un acheteur a perdu son QR code ? L&apos;IA retrouve son
                 billet, en génère un nouveau et le renvoie par email. Résolu
                 en quelques secondes.
@@ -45,7 +45,7 @@ export default function AiSupportShowcase() {
                   </div>
                 </div>
                 <div className="mt-2 flex justify-start">
-                  <div className="max-w-[80%] rounded-lg bg-nocturne-cyan/10 px-3 py-2 text-xs leading-relaxed text-nocturne-cyan">
+                  <div className="max-w-[80%] rounded-lg bg-tick8t-cyan/10 px-3 py-2 text-xs leading-relaxed text-tick8t-cyan">
                     C&apos;est renvoyé, vérifie ta boîte mail !
                   </div>
                 </div>
@@ -55,13 +55,13 @@ export default function AiSupportShowcase() {
 
           <StaggerItem>
             <div className="flex h-full flex-col rounded-lg border border-nocturne-gray-dark bg-nocturne-black p-8">
-              <span className="font-mono text-xs font-bold uppercase tracking-widest text-nocturne-rose">
+              <span className="font-mono text-xs font-bold uppercase tracking-widest text-tick8t-violet">
                 Toujours validé par toi
               </span>
               <h3 className="mt-3 text-xl font-bold text-nocturne-white">
                 Remboursements, jamais décidés sans toi
               </h3>
-              <p className="mt-3 text-sm leading-relaxed text-nocturne-text">
+              <p className="mt-3 text-sm leading-relaxed text-tick8t-secondary">
                 L&apos;IA ne rembourse jamais seule. Elle qualifie la
                 demande, la classe par priorité et te la transmet dans un
                 tableau de bord dédié. Tu valides, elle exécute.
@@ -72,14 +72,14 @@ export default function AiSupportShowcase() {
                   <span className="text-xs font-bold text-nocturne-white">
                     Marie D.
                   </span>
-                  <span className="rounded bg-nocturne-rose/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-nocturne-rose">
+                  <span className="rounded bg-tick8t-violet/20 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-tick8t-cyan">
                     high
                   </span>
                 </div>
-                <p className="mt-2 text-xs leading-relaxed text-nocturne-text">
+                <p className="mt-2 text-xs leading-relaxed text-tick8t-secondary">
                   « L&apos;événement a été annulé, je veux être remboursée »
                 </p>
-                <div className="mt-3 inline-block rounded-md bg-nocturne-gray-dark px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wide text-nocturne-text">
+                <div className="mt-3 inline-block rounded-md bg-nocturne-gray-dark px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wide text-tick8t-secondary">
                   En attente de validation
                 </div>
               </div>

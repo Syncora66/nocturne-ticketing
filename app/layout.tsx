@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Mono } from "next/font/google";
+import { Inter, Space_Mono, Michroma, Exo_2 } from "next/font/google";
 import AuthHashRedirect from "@/components/AuthHashRedirect";
 import CustomCursor from "@/components/CustomCursor";
 import "./globals.css";
@@ -12,6 +12,19 @@ const inter = Inter({
 const spaceMono = Space_Mono({
   variable: "--font-space-mono",
   weight: ["400", "700"],
+  subsets: ["latin"],
+});
+
+// Brand display/body pairing (matches Logo/tickmoon-logo-fixed.svg.svg),
+// used for the video-background "Comment ça marche" section.
+const michroma = Michroma({
+  variable: "--font-michroma",
+  weight: "400",
+  subsets: ["latin"],
+});
+
+const exo2 = Exo_2({
+  variable: "--font-exo2",
   subsets: ["latin"],
 });
 
@@ -29,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${inter.variable} ${spaceMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceMono.variable} ${michroma.variable} ${exo2.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-nocturne-black text-nocturne-text font-sans">
         <AuthHashRedirect />

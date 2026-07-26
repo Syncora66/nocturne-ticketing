@@ -19,6 +19,22 @@
   --color-nocturne-cyan: #00d9ff;
   --color-nocturne-text: #cccccc;
 
+  /* Tick8t brand palette — landing page only (see components/landing/*).
+     tick8t-teal is too dark to pass contrast as foreground text on the
+     near-black theme (~2.2:1 against #0a0a0a, under WCAG's 3:1 floor for
+     large text), so it's used as a background/glow accent instead — the
+     same role it plays in the brand logo (Logo/tickmoon-logo-fixed.svg.svg
+     uses #1B4F5C only as a blurred background ellipse, never as text). */
+  --color-tick8t-teal: #1b4f5c;
+  --color-tick8t-cyan: #4fd8e8;
+  --color-tick8t-violet: #4b3f86;
+  --color-tick8t-secondary: #8fb8c0;
+  --color-tick8t-black: #0d1820;
+  --color-tick8t-white: #f0fbfd;
+
+  --font-display: var(--font-michroma);
+  --font-exo: var(--font-exo2);
+
   --ease-strong-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-strong-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -54,6 +70,17 @@ body {
   animation: ambient-gradient 8s ease-in-out infinite;
 }
 
+/* Brings the Tick8t teal into section headers as a background glow (its
+   role in the brand logo) rather than as headline text color, which fails
+   contrast on this near-black theme. */
+.tick8t-teal-glow {
+  background-image: radial-gradient(
+    ellipse 70% 50% at 50% 0%,
+    rgba(27, 79, 92, 0.35),
+    transparent 65%
+  );
+}
+
 @keyframes float-slow {
   0%,
   100% {
@@ -76,6 +103,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .hero-ambient-bg {
     animation: none;
+  }
+
+  .tick8t-bg-video {
+    display: none;
   }
 
   .fade-in-section {
