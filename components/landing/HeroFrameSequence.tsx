@@ -6,7 +6,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { useScroll } from "framer-motion";
+import { motion, useScroll, useTransform, cubicBezier } from "framer-motion";
 import { FRAME_COUNT, FRAME_PATHS } from "./heroFrames";
 
 function noopSubscribe() {
@@ -20,6 +20,12 @@ function useMounted() {
     () => false
   );
 }
+
+// Same "strong ease-out" curve as the rest of the site's custom
+// easing tokens (app/globals.css --ease-strong-out) — used here for
+// the text's scroll-linked fade since useTransform interpolates
+// linearly by default otherwise.
+const EASE_STRONG_OUT = cubicBezier(0.23, 1, 0.32, 1);
 
 function HeroCopy() {
   return (
@@ -49,7 +55,7 @@ function HeroCopy() {
         <div className="mt-10">
           <a
             href="/auth/signup"
-            className="inline-block rounded-md bg-nocturne-rose px-8 py-4 font-mono text-sm font-bold uppercase tracking-wide text-nocturne-white transition-[transform,background-color,color] duration-200 ease-out hover:bg-nocturne-cyan hover:text-nocturne-black active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-nocturne-cyan"
+            className="inline-block rounded-md bg-nocturne-rose px-8 py-4 font-mono text-sm font-bold uppercase tracking-wide text-nocturne-white transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-nocturne-cyan hover:text-nocturne-black active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-nocturne-cyan"
           >
             Créer mon événement
           </a>
@@ -73,7 +79,15 @@ function HeroCopy() {
   );
 }
 
-function HeroFrame({ children }: { children: ReactNode }) {
+function HeroFrame({
+  children,
+  textOpacity,
+  textY,
+}: {
+  children: ReactNode;
+  textOpacity?: import("framer-motion").MotionValue<number>;
+  textY?: import("framer-motion").MotionValue<number>;
+}) {
   return (
     <div className="relative flex h-full w-full items-center overflow-hidden bg-nocturne-black">
       {children}
@@ -81,9 +95,22 @@ function HeroFrame({ children }: { children: ReactNode }) {
         className="pointer-events-none absolute inset-0 bg-gradient-to-r from-nocturne-black/85 via-nocturne-black/45 to-transparent"
         aria-hidden="true"
       />
-      <div className="relative z-10 w-full">
-        <HeroCopy />
-      </div>
+      <motion.div
+        className="relative z-10 w-full"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1] }}
+      >
+        <motion.div
+          style={
+            textOpacity || textY
+              ? { opacity: textOpacity, y: textY }
+              : undefined
+          }
+        >
+          <HeroCopy />
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
@@ -109,18 +136,42 @@ function DesktopScrollHero() {
   const trackRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
-  const currentFrameRef = useRef(0);
+  const currentDrawnRef = useRef(-1);
 
   const { scrollYProgress } = useScroll({
     target: trackRef,
     offset: ["start start", "end end"],
   });
 
+  // The hero is the first thing on the page, so scrollY=0 already
+  // *is* "arrived" — there's no earlier moment to fade in from. The
+  // arrival fade is therefore a one-time mount transition (below, on
+  // the outer motion.div), while this transform only handles the
+  // "disparaît en douceur en sortant" half: fully visible for most of
+  // the scroll, fading only as the hero approaches release.
+  const textOpacity = useTransform(scrollYProgress, [0, 0.75, 1], [1, 1, 0], {
+    ease: EASE_STRONG_OUT,
+  });
+  const textY = useTransform(scrollYProgress, [0.75, 1], [0, -16], {
+    ease: EASE_STRONG_OUT,
+  });
+
   useEffect(() => {
-    function drawFrame(index: number) {
+    function drawBlended(rawFrame: number) {
       const canvas = canvasRef.current;
-      const img = imagesRef.current[index - 1];
-      if (!canvas || !img || !img.complete || img.naturalWidth === 0) return;
+      if (!canvas) return;
+      const images = imagesRef.current;
+
+      const frameA = Math.max(
+        1,
+        Math.min(FRAME_COUNT, Math.floor(rawFrame))
+      );
+      const frameB = Math.min(FRAME_COUNT, frameA + 1);
+      const blend = Math.max(0, Math.min(1, rawFrame - frameA));
+
+      const imgA = images[frameA - 1];
+      const imgB = images[frameB - 1];
+      if (!imgA || !imgA.complete || imgA.naturalWidth === 0) return;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
@@ -135,16 +186,32 @@ function DesktopScrollHero() {
         canvas.height = pixelHeight;
       }
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      function drawCover(img: HTMLImageElement, alpha: number) {
+        const iw = img.naturalWidth;
+        const ih = img.naturalHeight;
+        const scale = Math.max(canvas!.width / iw, canvas!.height / ih);
+        const dw = iw * scale;
+        const dh = ih * scale;
+        const dx = (canvas!.width - dw) / 2;
+        const dy = (canvas!.height - dh) / 2;
+        ctx!.globalAlpha = alpha;
+        ctx!.drawImage(img, dx, dy, dw, dh);
+      }
 
-      const iw = img.naturalWidth;
-      const ih = img.naturalHeight;
-      const scale = Math.max(canvas.width / iw, canvas.height / ih);
-      const dw = iw * scale;
-      const dh = ih * scale;
-      const dx = (canvas.width - dw) / 2;
-      const dy = (canvas.height - dh) / 2;
-      ctx.drawImage(img, dx, dy, dw, dh);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1;
+      drawCover(imgA, 1);
+
+      if (
+        blend > 0.001 &&
+        imgB &&
+        imgB.complete &&
+        imgB.naturalWidth > 0 &&
+        frameB !== frameA
+      ) {
+        drawCover(imgB, blend);
+      }
+      ctx.globalAlpha = 1;
     }
 
     let cancelled = false;
@@ -160,29 +227,24 @@ function DesktopScrollHero() {
 
     decode(images[0]).then(() => {
       if (!cancelled) {
-        currentFrameRef.current = 1;
-        drawFrame(1);
+        currentDrawnRef.current = 1;
+        drawBlended(1);
       }
     });
 
     Promise.all(images.map(decode)).then(() => {
-      if (!cancelled) drawFrame(currentFrameRef.current || 1);
+      if (!cancelled) drawBlended(currentDrawnRef.current || 1);
     });
 
     function handleResize() {
-      drawFrame(currentFrameRef.current || 1);
+      drawBlended(currentDrawnRef.current || 1);
     }
     window.addEventListener("resize", handleResize);
 
     const unsubscribe = scrollYProgress.on("change", (v) => {
-      const frame = Math.min(
-        FRAME_COUNT,
-        Math.max(1, Math.round(1 + v * (FRAME_COUNT - 1)))
-      );
-      if (frame !== currentFrameRef.current) {
-        currentFrameRef.current = frame;
-        drawFrame(frame);
-      }
+      const rawFrame = 1 + v * (FRAME_COUNT - 1);
+      currentDrawnRef.current = rawFrame;
+      drawBlended(rawFrame);
     });
 
     return () => {
@@ -195,7 +257,7 @@ function DesktopScrollHero() {
   return (
     <section ref={trackRef} className="relative h-[300vh]">
       <div className="sticky top-0 h-screen">
-        <HeroFrame>
+        <HeroFrame textOpacity={textOpacity} textY={textY}>
           <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
         </HeroFrame>
       </div>
