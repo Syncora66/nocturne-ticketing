@@ -260,6 +260,15 @@ function HeroVideo({
     <video
       ref={videoRef}
       className={className}
+      // Forces this video onto its own GPU compositing layer. iOS Safari
+      // has a known bug where a <video> nested inside a `position: sticky`
+      // + `overflow: hidden` ancestor (exactly this Hero's structure, for
+      // the 900vh scroll-pin effect) can fail to composite at all and
+      // renders solid black, independent of whether the video itself is
+      // playing or has painted a frame. translateZ(0) is the standard
+      // workaround — it's a no-op transform that exists purely to promote
+      // the element to its own layer.
+      style={{ transform: "translateZ(0)", willChange: "transform" }}
       src={HERO_VIDEO_SRC}
       muted
       playsInline
@@ -390,14 +399,23 @@ function ScrollHero() {
       // it — not even via a currentTime seek, which is all `update` does
       // below. Desktop browsers paint a sought frame with no play() ever
       // needed, which is why this only shows up on mobile: a play()-then-
-      // immediately-pause() unlocks the decoder there without introducing
-      // real motion (same fix already used for the reduced-motion static
-      // image's video, before it became an <img> — see StaticHero).
-      video!
-        .play()
-        .then(() => video!.pause())
-        .catch(() => video!.pause())
-        .finally(() => update(scrollYProgress.get()));
+      // pause() unlocks the decoder there without introducing real motion
+      // (same fix already used for the reduced-motion static image's
+      // video, before it became an <img> — see StaticHero). Pausing on
+      // the very next tick isn't enough on some devices — play() can
+      // resolve before a frame has actually been composited, so pause()
+      // fires before anything was ever painted. Two rAF ticks guarantee
+      // at least one real paint cycle has happened first.
+      function pauseAfterFirstPaint() {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            video!.pause();
+            update(scrollYProgress.get());
+          });
+        });
+      }
+
+      video!.play().then(pauseAfterFirstPaint).catch(pauseAfterFirstPaint);
     }
 
     video?.addEventListener("loadedmetadata", handleLoadedMetadata);
