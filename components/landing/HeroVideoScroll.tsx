@@ -304,17 +304,16 @@ function HeroFrame({
   );
 }
 
-// Used on mobile and whenever the visitor prefers reduced motion: a single,
-// non-cycling pitch backed by a static image (a JPEG extracted from the
-// hero video's own opening frame, kept pixel-identical to what the scroll
-// version shows at progress=0) instead of a <video> element. A <video> that
-// has only loaded metadata but never played renders as solid black on iOS
-// Safari and several other mobile browsers — buffering and readyState
-// don't guarantee a first paint there, only an actual play() call does.
-// A plain <img> sidesteps that failure mode entirely rather than working
-// around it, and happens to also be a strictly better fit for
-// prefers-reduced-motion (genuinely static, no momentary play() at all)
-// and for weak connections (no video decode work whatsoever).
+// Used only when the visitor prefers reduced motion (and briefly
+// pre-hydration): a single, non-cycling pitch backed by a static image (a
+// JPEG extracted from the hero video's own opening frame, kept
+// pixel-identical to what the scroll version shows at progress=0) instead
+// of a <video> element. Genuinely static — no scroll listener, no video
+// decode, no momentary play() — which is what prefers-reduced-motion asks
+// for. This is distinct from the "video paused but never played" bug that
+// used to make the old mobile fallback render solid black on iOS Safari:
+// ScrollHero's video is never in that state, since seeking it (below)
+// forces a real frame paint from the first scroll tick.
 function StaticHero() {
   return (
     <section className="relative min-h-screen">
@@ -340,7 +339,7 @@ function StaticHero() {
   );
 }
 
-function DesktopScrollHero() {
+function ScrollHero() {
   const trackRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -450,17 +449,16 @@ function DesktopScrollHero() {
 export default function HeroVideoScroll() {
   const mounted = useMounted();
 
-  // Pre-hydration, mobile, and prefers-reduced-motion all get the
-  // lightweight static hero — avoids a blank 300vh scroll track before JS
-  // decides, and skips the scroll-driven video-seek work on the
-  // connections/devices/preferences least able to afford it. Checked once
-  // at mount, no resize listener: this isn't an interactive control, just
+  // Pre-hydration and prefers-reduced-motion get the lightweight static
+  // hero — avoids a blank 900vh scroll track before JS decides, and
+  // respects the visitor's motion preference. Every other visitor,
+  // mobile included, gets the full scroll-driven video — checked once at
+  // mount, no resize listener: this isn't an interactive control, just
   // which hero experience to render.
   const useStatic =
     mounted && typeof window !== "undefined"
-      ? window.matchMedia("(max-width: 767px)").matches ||
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
       : true;
 
-  return useStatic ? <StaticHero /> : <DesktopScrollHero />;
+  return useStatic ? <StaticHero /> : <ScrollHero />;
 }
