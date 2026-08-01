@@ -385,8 +385,19 @@ function ScrollHero() {
     }
 
     function handleLoadedMetadata() {
-      video!.pause();
-      update(scrollYProgress.get());
+      // Mobile Safari (and several other mobile browsers) won't decode or
+      // paint any frame for a <video> that has never had play() called on
+      // it — not even via a currentTime seek, which is all `update` does
+      // below. Desktop browsers paint a sought frame with no play() ever
+      // needed, which is why this only shows up on mobile: a play()-then-
+      // immediately-pause() unlocks the decoder there without introducing
+      // real motion (same fix already used for the reduced-motion static
+      // image's video, before it became an <img> — see StaticHero).
+      video!
+        .play()
+        .then(() => video!.pause())
+        .catch(() => video!.pause())
+        .finally(() => update(scrollYProgress.get()));
     }
 
     video?.addEventListener("loadedmetadata", handleLoadedMetadata);
