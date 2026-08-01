@@ -4,7 +4,7 @@ import { StaggerContainer, StaggerItem } from "@/components/StaggerGrid";
 const comparisons = [
   {
     problem: "Eventbrite prend jusqu'à 4€ par ticket",
-    solution: "0.50€ par ticket. Tu gardes 99.5%.",
+    solution: "1.50€ par ticket. Tu gardes 99.5%.",
   },
   {
     problem: "Frais additionnels à la caisse",
@@ -27,8 +27,8 @@ export default function TrustSection() {
           <h2 className="mt-4 text-3xl font-bold text-nocturne-white sm:text-4xl">
             Zéro commission cachée.
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-tick8t-secondary">
-            0.50€ par ticket vendu. Pas de frais de service, pas de
+          <p className="subtitle-accent mx-auto mt-4 max-w-xl text-left">
+            1.50€ par ticket vendu. Pas de frais de service, pas de
             pourcentage sur les recettes, pas de surprise à la fin du mois.
           </p>
         </ScrollReveal>

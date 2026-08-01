@@ -16,7 +16,7 @@ export default function AiSupportShowcase() {
               Toi, tu gardes le contrôle total.
             </span>
           </h2>
-          <p className="mt-5 text-base leading-relaxed text-tick8t-secondary sm:text-lg">
+          <p className="subtitle-accent mx-auto mt-5 max-w-xl text-left">
             Remboursements, billets perdus, questions clients — l&apos;agent
             IA s&apos;en occupe jour et nuit. Rien n&apos;est décidé sans toi
             sur l&apos;argent.

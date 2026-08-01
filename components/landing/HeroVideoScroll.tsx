@@ -8,6 +8,7 @@ import {
   type Ref,
 } from "react";
 import { motion, useScroll, cubicBezier } from "framer-motion";
+import { useGsapHover } from "@/hooks/useGsapHover";
 
 const HERO_VIDEO_SRC = "/tick8t-hero-video.mp4";
 
@@ -28,8 +29,8 @@ function useMounted() {
 const EASE_STRONG_OUT = cubicBezier(0.23, 1, 0.32, 1);
 
 // Every scroll-linked value on this hero (video currentTime, title-block
-// opacity/y, release-fade opacity/y) is driven by hand from a single
-// scrollYProgress subscription instead of Framer Motion's useTransform.
+// opacity/y) is driven by hand from a single scrollYProgress subscription
+// instead of Framer Motion's useTransform.
 // Reason: useTransform's optional `ease` turns the binding into a
 // hardware-accelerated Web Animation under the hood, and with six of those
 // hanging off the same source MotionValue they were observed going out of
@@ -72,7 +73,11 @@ const TITLE_BLOCKS: TitleBlock[] = [
         </span>
       </>
     ),
-    body: "Ticketing moderne pour collectifs événementiels. Zéro commission cachée.",
+    body: (
+      <div className="subtitle-accent mt-6">
+        La billetterie que les organisateurs attendaient
+      </div>
+    ),
   },
   {
     id: "support",
@@ -83,7 +88,12 @@ const TITLE_BLOCKS: TitleBlock[] = [
         <span className="text-tick8t-cyan">support client.</span>
       </>
     ),
-    body: "Remboursements, renvoi de billets, questions clients — traités 24/7. Toi, tu gardes le contrôle total.",
+    body: (
+      <div className="subtitle-accent mt-6 max-w-lg">
+        Remboursements, renvoi de billets, questions clients — traités 24/7.
+        Toi, tu gardes le contrôle total.
+      </div>
+    ),
   },
   {
     id: "commission",
@@ -94,7 +104,12 @@ const TITLE_BLOCKS: TitleBlock[] = [
         <span className="text-tick8t-cyan">cachée.</span>
       </>
     ),
-    body: "0.50€ par ticket vendu. Pas de frais de service, pas de surprise à la caisse.",
+    body: (
+      <div className="subtitle-accent mt-6 max-w-lg">
+        1.50€ par ticket vendu. Pas de frais de service, pas de surprise à la
+        caisse.
+      </div>
+    ),
   },
   {
     id: "cta",
@@ -105,21 +120,22 @@ const TITLE_BLOCKS: TitleBlock[] = [
         <span className="text-tick8t-cyan">en 2 minutes.</span>
       </>
     ),
-    body: "Nom, date, lieu, image. Lien de vente généré instantanément — vends dès aujourd'hui.",
+    body: (
+      <div className="subtitle-accent mt-6 max-w-lg">
+        Nom, date, lieu, image. Lien de vente généré instantanément — vends
+        dès aujourd&apos;hui.
+      </div>
+    ),
   },
 ];
 
 function TitleBody({ block }: { block: TitleBlock }) {
   return (
     <div className="max-w-xl">
-      <h1 className="text-4xl font-extrabold tracking-[-0.02em] text-nocturne-white sm:text-5xl lg:text-6xl">
+      <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-nocturne-white sm:text-4xl lg:text-5xl">
         {block.heading}
       </h1>
-      <div className="mt-6 max-w-lg rounded-lg border-l-2 border-tick8t-cyan bg-nocturne-black/40 py-3 pl-4 backdrop-blur-sm">
-        <p className="text-base font-bold leading-relaxed text-nocturne-white sm:text-lg">
-          {block.body}
-        </p>
-      </div>
+      {block.body}
     </div>
   );
 }
@@ -128,8 +144,10 @@ function TitleBody({ block }: { block: TitleBlock }) {
 // crossfade window straddling each boundary so consecutive blocks blend
 // instead of cutting. The first block is fully visible at progress=0 (the
 // hero is the first thing on the page — nothing earlier to fade in from),
-// and the last stays fully visible through progress=1 (the outer wrapper's
-// own release-fade handles the hand-off to the next section).
+// and the last stays fully visible through progress=1 — all the way to the
+// Hero's last pixel — since HeroHandoff.tsx already crossfades the whole
+// Hero into the next section once the sticky pin releases; fading the text
+// out early here just left a blank video-only gap before that handoff.
 function titleTransforms(index: number, total: number) {
   const boundary = 1 / total;
   const crossfade = boundary * 0.3;
@@ -138,7 +156,7 @@ function titleTransforms(index: number, total: number) {
 
   // The input range must be strictly increasing — the first block has no
   // fade-in leg (it's already visible at progress=0) and the last has no
-  // fade-out leg (the release-fade handles its exit), so those legs are
+  // fade-out leg (it stays visible through progress=1), so those legs are
   // omitted entirely rather than left as a duplicate point.
   const input: number[] = [];
   const opacityOutput: number[] = [];
@@ -196,11 +214,15 @@ function AnimatedTitleBlock({
 }
 
 function HeroCta() {
+  const ctaRef = useRef<HTMLAnchorElement>(null);
+  useGsapHover(ctaRef, { scale: 1.05, glowColor: "rgba(79, 216, 232, 0.5)" });
+
   return (
     <div className="mt-10">
       <a
+        ref={ctaRef}
         href="/auth/signup"
-        className="inline-block rounded-md bg-tick8t-cyan px-8 py-4 font-mono text-sm font-bold uppercase tracking-wide text-nocturne-black transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-tick8t-violet hover:text-nocturne-white active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tick8t-cyan"
+        className="inline-block rounded-md bg-tick8t-cyan px-8 py-4 font-mono text-sm font-bold uppercase tracking-wide text-nocturne-black transition-[background-color,color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-tick8t-violet hover:text-nocturne-white active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tick8t-cyan"
       >
         Créer mon événement
       </a>
@@ -212,7 +234,7 @@ function HeroBadges() {
   return (
     <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
       <span className="font-mono text-xs font-bold tracking-wide text-tick8t-secondary/70">
-        0.50€ / TICKET
+        1.50€ / TICKET
       </span>
       <span className="h-1 w-1 rounded-full bg-nocturne-gray-dark" />
       <span className="font-mono text-xs font-bold tracking-wide text-tick8t-secondary/70">
@@ -247,11 +269,9 @@ function HeroVideo({
 
 function HeroFrame({
   video,
-  releaseRef,
   children,
 }: {
   video: ReactNode;
-  releaseRef?: Ref<HTMLDivElement>;
   children: ReactNode;
 }) {
   return (
@@ -261,16 +281,21 @@ function HeroFrame({
         className="pointer-events-none absolute inset-0 bg-gradient-to-r from-nocturne-black/85 via-nocturne-black/45 to-transparent"
         aria-hidden="true"
       />
+      {/* Static scrim (no scroll-linked opacity) that softens the hand-off
+          into the next section's own dark background — always present at
+          the bottom edge rather than animated, so there's no scroll-progress
+          calculation that could ever paint it fully opaque by mistake. */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-tick8t-black sm:h-48"
+        aria-hidden="true"
+      />
       <motion.div
         className="relative z-10 w-full"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1] }}
       >
-        <div
-          ref={releaseRef}
-          className="mx-auto w-full max-w-6xl px-6 sm:px-10 lg:px-16"
-        >
+        <div className="mx-auto w-full max-w-6xl px-6 sm:px-10 lg:px-16">
           {children}
         </div>
       </motion.div>
@@ -287,7 +312,7 @@ function StaticHero() {
       <div className="sticky top-0 h-screen">
         <HeroFrame
           video={
-            <HeroVideo className="absolute inset-0 h-full w-full object-cover" />
+            <HeroVideo className="absolute inset-0 h-full w-full object-cover object-top" />
           }
         >
           <TitleBody block={TITLE_BLOCKS[0]} />
@@ -299,14 +324,9 @@ function StaticHero() {
   );
 }
 
-const RELEASE_INPUT = [0.94, 1];
-const RELEASE_OPACITY_OUTPUT = [1, 0];
-const RELEASE_Y_OUTPUT = [0, -16];
-
 function DesktopScrollHero() {
   const trackRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const releaseRef = useRef<HTMLDivElement>(null);
   const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const { scrollYProgress } = useScroll({
@@ -344,19 +364,9 @@ function DesktopScrollHero() {
       });
     }
 
-    function updateRelease(progress: number) {
-      const el = releaseRef.current;
-      if (!el) return;
-      el.style.opacity = String(
-        remap(progress, RELEASE_INPUT, RELEASE_OPACITY_OUTPUT)
-      );
-      el.style.transform = `translateY(${remap(progress, RELEASE_INPUT, RELEASE_Y_OUTPUT)}px)`;
-    }
-
     function update(progress: number) {
       seekVideo(progress);
       updateTitles(progress);
-      updateRelease(progress);
     }
 
     function handleLoadedMetadata() {
@@ -368,11 +378,10 @@ function DesktopScrollHero() {
     if (video && video.readyState >= 1) {
       handleLoadedMetadata();
     } else {
-      // Video metadata may still be loading — seed titles/release state
-      // immediately so they aren't stuck at their JSX-rendered initial
-      // values until the video catches up.
+      // Video metadata may still be loading — seed title state immediately
+      // so it isn't stuck at its JSX-rendered initial values until the
+      // video catches up.
       updateTitles(scrollYProgress.get());
-      updateRelease(scrollYProgress.get());
     }
 
     const unsubscribe = scrollYProgress.on("change", update);
@@ -396,10 +405,9 @@ function DesktopScrollHero() {
           video={
             <HeroVideo
               videoRef={videoRef}
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover object-top"
             />
           }
-          releaseRef={releaseRef}
         >
           <div className="grid">
             {TITLE_BLOCKS.map((block, i) => (

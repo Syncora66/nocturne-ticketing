@@ -31,7 +31,7 @@ const exo2 = Exo_2({
 export const metadata: Metadata = {
   title: "Nocturne Ticketing — Vendre des tickets, sans la friction",
   description:
-    "Ticketing moderne pour collectifs événementiels. 0.50€ par ticket, support IA 24/7, check-in QR.",
+    "Ticketing moderne pour collectifs événementiels. 1.50€ par ticket, support IA 24/7, check-in QR.",
 };
 
 export default function RootLayout({

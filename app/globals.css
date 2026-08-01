@@ -56,7 +56,8 @@ body {
 
 .hero-ambient-bg {
   background-color: var(--color-nocturne-black);
-  background-image: radial-gradient(
+  background-image:
+    radial-gradient(
       ellipse 80% 60% at 20% 20%,
       rgba(255, 0, 110, 0.12),
       transparent 60%
@@ -100,13 +101,40 @@ body {
   animation-delay: 1.2s;
 }
 
+/* Shared "sous-titre" accent badge — the pill/bordered treatment used under
+   every section heading and the hero. Fixed (not fully-rounded) radius so it
+   stays a clean rounded rectangle when a longer subtitle wraps to two or
+   three lines, instead of the stadium shape rounded-full would produce. */
+.subtitle-accent {
+  display: inline-flex;
+  border-radius: 12px;
+  border: 1px solid
+    color-mix(in srgb, var(--color-tick8t-cyan) 60%, transparent);
+  background-color: transparent;
+  padding: 0.625rem 1rem;
+  font-family: var(--font-exo);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-tick8t-white);
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.pulse-glow-line {
+  animation: pulse-glow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-ambient-bg {
     animation: none;
-  }
-
-  .tick8t-bg-video {
-    display: none;
   }
 
   .fade-in-section {
@@ -118,5 +146,10 @@ body {
   .float-badge,
   .float-badge-delayed {
     animation: none;
+  }
+
+  .pulse-glow-line {
+    animation: none;
+    opacity: 1;
   }
 }
