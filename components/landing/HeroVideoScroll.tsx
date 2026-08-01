@@ -8,6 +8,7 @@ import {
   type Ref,
 } from "react";
 import { motion, useScroll, cubicBezier } from "framer-motion";
+import Image from "next/image";
 import { useGsapHover } from "@/hooks/useGsapHover";
 
 const HERO_VIDEO_SRC = "/tick8t-hero-video.mp4";
@@ -20,7 +21,7 @@ function useMounted() {
   return useSyncExternalStore(
     noopSubscribe,
     () => true,
-    () => false
+    () => false,
   );
 }
 
@@ -122,8 +123,8 @@ const TITLE_BLOCKS: TitleBlock[] = [
     ),
     body: (
       <div className="subtitle-accent mt-6 max-w-lg">
-        Nom, date, lieu, image. Lien de vente généré instantanément — vends
-        dès aujourd&apos;hui.
+        Nom, date, lieu, image. Lien de vente généré instantanément — vends dès
+        aujourd&apos;hui.
       </div>
     ),
   },
@@ -268,15 +269,15 @@ function HeroVideo({
 }
 
 function HeroFrame({
-  video,
+  media,
   children,
 }: {
-  video: ReactNode;
+  media: ReactNode;
   children: ReactNode;
 }) {
   return (
     <div className="relative flex h-full w-full items-center overflow-hidden bg-nocturne-black">
-      {video}
+      {media}
       <div
         className="pointer-events-none absolute inset-0 bg-gradient-to-r from-nocturne-black/85 via-nocturne-black/45 to-transparent"
         aria-hidden="true"
@@ -304,15 +305,30 @@ function HeroFrame({
 }
 
 // Used on mobile and whenever the visitor prefers reduced motion: a single,
-// non-cycling pitch with the video paused on its first frame — no scroll
-// listener, no per-frame seeking work.
+// non-cycling pitch backed by a static image (a JPEG extracted from the
+// hero video's own opening frame, kept pixel-identical to what the scroll
+// version shows at progress=0) instead of a <video> element. A <video> that
+// has only loaded metadata but never played renders as solid black on iOS
+// Safari and several other mobile browsers — buffering and readyState
+// don't guarantee a first paint there, only an actual play() call does.
+// A plain <img> sidesteps that failure mode entirely rather than working
+// around it, and happens to also be a strictly better fit for
+// prefers-reduced-motion (genuinely static, no momentary play() at all)
+// and for weak connections (no video decode work whatsoever).
 function StaticHero() {
   return (
     <section className="relative min-h-screen">
       <div className="sticky top-0 h-screen">
         <HeroFrame
-          video={
-            <HeroVideo className="absolute inset-0 h-full w-full object-cover object-top" />
+          media={
+            <Image
+              src="/hero-frame.jpg"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-top"
+            />
           }
         >
           <TitleBody block={TITLE_BLOCKS[0]} />
@@ -357,7 +373,7 @@ function DesktopScrollHero() {
         if (!el) return;
         const { input, opacityOutput, yOutput } = titleTransforms(
           i,
-          TITLE_BLOCKS.length
+          TITLE_BLOCKS.length,
         );
         el.style.opacity = String(remap(progress, input, opacityOutput));
         el.style.transform = `translateY(${remap(progress, input, yOutput)}px)`;
@@ -402,7 +418,7 @@ function DesktopScrollHero() {
     <section ref={trackRef} className="relative h-[900vh]">
       <div className="sticky top-0 h-screen">
         <HeroFrame
-          video={
+          media={
             <HeroVideo
               videoRef={videoRef}
               className="absolute inset-0 h-full w-full object-cover object-top"
