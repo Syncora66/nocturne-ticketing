@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import HeroVideoScroll from "@/components/landing/HeroVideoScroll";
 import HeroHandoff from "@/components/landing/HeroHandoff";
+import SlideTransition from "@/components/SlideTransition";
 import ScrollReveal from "@/components/ScrollReveal";
 import { useGsapHover } from "@/hooks/useGsapHover";
 import HowItWorks from "@/components/landing/HowItWorks";
@@ -132,10 +133,15 @@ export default function Home() {
       <Navbar />
       <HeroHandoff hero={<HeroVideoScroll />} nextSection={<HowItWorks />} />
 
+      <SlideTransition />
       <AiSupportShowcase />
+      <SlideTransition />
       <TrustSection />
+      <SlideTransition />
       <FeaturesSection />
+      <SlideTransition />
       <PricingSection />
+      <SlideTransition />
 
       {/* CTA */}
       <section className="tick8t-teal-glow bg-tick8t-black px-6 py-24 sm:px-10 lg:px-16">
@@ -159,6 +165,7 @@ export default function Home() {
         </ScrollReveal>
       </section>
 
+      <SlideTransition />
       <Footer />
     </main>
   );
