@@ -270,6 +270,11 @@ function HeroVideo({
       // the element to its own layer.
       style={{ transform: "translateZ(0)", willChange: "transform" }}
       src={HERO_VIDEO_SRC}
+      // Same JPEG as the static hero's fallback image — renders instantly
+      // (tens of KB vs. the video's 1MB+) so there's something on screen
+      // the moment this element mounts, instead of the section's plain
+      // black background for however long the video takes to buffer.
+      poster="/hero-frame.jpg"
       muted
       playsInline
       preload="auto"
