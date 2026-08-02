@@ -25,6 +25,57 @@ export default function SlideTransition() {
       if (!anchorRef.current || !revealRef.current) return;
 
       gsap.set(revealRef.current, { opacity: 0, scaleX: 0.6 });
+
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      // Particles only animate while this transition is near the
+      // viewport. There are 7 of these on the page at once (56 particles
+      // total) — without this gate, all of them would run continuously
+      // from page load regardless of scroll position, which a Lighthouse
+      // mobile audit confirmed as real main-thread cost. Driven off the
+      // reveal's own ScrollTrigger via callbacks (play/pause, not
+      // kill/restart) rather than a second ScrollTrigger per instance —
+      // an earlier version did that and doubled the page's total
+      // ScrollTrigger count for no real benefit.
+      let particleTimeline: gsap.core.Timeline | null = null;
+      if (!reducedMotion) {
+        // Drift distances shrink on narrow viewports so sparks stay
+        // inside the visual instead of flying off a 375px screen.
+        const driftScale = window.matchMedia("(max-width: 480px)").matches
+          ? 0.5
+          : 1;
+
+        particleTimeline = gsap.timeline({ paused: true });
+        particleRefs.current.forEach((el, i) => {
+          if (!el) return;
+
+          particleTimeline!.fromTo(
+            el,
+            { x: 0, y: 0, opacity: 0, scale: 0.6 },
+            {
+              x: () =>
+                gsap.utils.random(30, 60) *
+                driftScale *
+                (Math.random() < 0.5 ? -1 : 1),
+              y: () =>
+                gsap.utils.random(40, 80) *
+                driftScale *
+                (Math.random() < 0.5 ? -1 : 1),
+              opacity: 1,
+              scale: 1,
+              duration: () => gsap.utils.random(3, 4),
+              ease: "power2.out",
+              repeat: -1,
+              repeatRefresh: true,
+              yoyo: true,
+            },
+            i * 0.3,
+          );
+        });
+      }
+
       gsap.to(revealRef.current, {
         opacity: 1,
         scaleX: 1,
@@ -33,44 +84,12 @@ export default function SlideTransition() {
         scrollTrigger: {
           trigger: anchorRef.current,
           start: "top 90%",
+          end: "bottom top",
+          onEnter: () => particleTimeline?.play(),
+          onEnterBack: () => particleTimeline?.play(),
+          onLeave: () => particleTimeline?.pause(),
+          onLeaveBack: () => particleTimeline?.pause(),
         },
-      });
-
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        return;
-      }
-
-      // Drift distances shrink on narrow viewports so sparks stay inside
-      // the visual instead of flying off a 375px screen.
-      const driftScale = window.matchMedia("(max-width: 480px)").matches
-        ? 0.5
-        : 1;
-
-      particleRefs.current.forEach((el, i) => {
-        if (!el) return;
-
-        gsap.fromTo(
-          el,
-          { x: 0, y: 0, opacity: 0, scale: 0.6 },
-          {
-            x: () =>
-              gsap.utils.random(30, 60) *
-              driftScale *
-              (Math.random() < 0.5 ? -1 : 1),
-            y: () =>
-              gsap.utils.random(40, 80) *
-              driftScale *
-              (Math.random() < 0.5 ? -1 : 1),
-            opacity: 1,
-            scale: 1,
-            duration: () => gsap.utils.random(3, 4),
-            ease: "power2.out",
-            repeat: -1,
-            repeatRefresh: true,
-            yoyo: true,
-            delay: i * 0.3,
-          },
-        );
       });
     },
     { scope: anchorRef },

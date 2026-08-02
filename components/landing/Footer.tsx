@@ -47,11 +47,14 @@ export default function Footer() {
         scrollTrigger: { trigger: footerRef.current, start: "top 85%" },
       });
     },
-    { scope: footerRef }
+    { scope: footerRef },
   );
 
   return (
-    <footer ref={footerRef} className="bg-nocturne-black px-6 py-16 sm:px-10 lg:px-16">
+    <footer
+      ref={footerRef}
+      className="bg-nocturne-black px-6 py-16 sm:px-10 lg:px-16"
+    >
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_repeat(3,1fr)]">
           <div
@@ -95,7 +98,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 border-t border-nocturne-gray-dark pt-8">
-          <span className="font-exo text-xs text-tick8t-secondary/60">
+          <span className="font-exo text-xs text-tick8t-secondary/80">
             © {new Date().getFullYear()} Tick8t. Tous droits réservés.
           </span>
         </div>
