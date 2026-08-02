@@ -14,15 +14,15 @@ export async function proxy(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
+            request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
   const {
@@ -31,7 +31,10 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (!user && pathname.startsWith("/dashboard")) {
+  if (
+    !user &&
+    (pathname.startsWith("/dashboard") || pathname.startsWith("/scanner"))
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
@@ -40,7 +43,9 @@ export async function proxy(request: NextRequest) {
   // Already signed in — the landing page and auth forms aren't useful
   // anymore, send them straight to their dashboard instead.
   const isAuthEntryPoint =
-    pathname === "/" || pathname === "/auth/login" || pathname === "/auth/signup";
+    pathname === "/" ||
+    pathname === "/auth/login" ||
+    pathname === "/auth/signup";
   if (user && isAuthEntryPoint) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
@@ -51,5 +56,11 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/auth/login", "/auth/signup", "/dashboard/:path*"],
+  matcher: [
+    "/",
+    "/auth/login",
+    "/auth/signup",
+    "/dashboard/:path*",
+    "/scanner/:path*",
+  ],
 };
